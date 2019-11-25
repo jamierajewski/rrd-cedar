@@ -1,7 +1,14 @@
 #!/bin/bash -l
 
 max_number_jobs=10000
-set -o pipefail
+set -euo pipefail
+
+# The main; fetch the list of users then iterate over it, applying the function to each
+#USERS=$(getent group rpp-kenclark | cut -d ":" -f4) 
+USERS=jpyanez,kenclark,moore,hignight,terliuk,gaertner,jguthrie,tahmid,fbarrett,kleonard,jrajewsk,sanchezh,ckopper,mxiao1,keito38,tmontgom,snowicki,iceprod
+
+# Ping squeue ONCE, then REGEX it to reduce load on slurm
+SQUEUE_OUT=$(squeue -r -u $USERS -t R,PD -h)
 
 fetch_and_update(){
     RRD_DATABASE=~/rrd-cedar/${1}.cedar.rrd
@@ -10,25 +17,31 @@ fetch_and_update(){
         rrdtool create ${RRD_DATABASE} --step 120 \
                 DS:${1}_cpu_R:GAUGE:600:0:${max_number_jobs} \
                 DS:${1}_cpu_Q:GAUGE:600:0:${max_number_jobs} \
+		DS:${1}_gpu_R:GAUGE:600:0:${max_number_jobs} \
+		DS:${1}_gpu_Q:GAUGE:600:0:${max_number_jobs} \
 		RRA:AVERAGE:0.5:1:1500  \
                 RRA:AVERAGE:0.5:30:1500 \
                 RRA:AVERAGE:0.5:360:7500
     fi
 
     # Get the running and pending jobs and store them
-    R=$(squeue -u $1 -t R -h | wc -l)
-    Q=$(squeue -u $1 -t PD -h | wc -l)
+    R_TOTAL=$(echo "$SQUEUE_OUT" | awk -v user="$1" 'BEGIN {r=0} {if ($2 == user && $5 == "R") {r+=1}} END {print r}')
+    Q_TOTAL=$(echo "$SQUEUE_OUT" | awk -v user="$1" 'BEGIN {q=0} {if ($2 == user && $5 == "PD") {q+=1}} END {print q}')
+    
+    R_GPU=$(echo "$SQUEUE_OUT" | awk -v user="$1" 'BEGIN {r=0} {if ($2 == user && $5 == "R" && $9 ~ /gpu/) {r+=1}} END {print r}')
+    Q_GPU=$(echo "$SQUEUE_OUT" | awk -v user="$1" 'BEGIN {q=0} {if ($2 == user && $5 == "PD" && $9 ~ /gpu/) {q+=1}} END {print q}')
+
+    R_CPU=$(echo "$R_TOTAL - $R_GPU" | bc)
+    Q_CPU=$(echo "$Q_TOTAL - $Q_GPU" | bc)
+
     
     # Now create the readout
-    RRD_OUT=$(echo "N:$R:$Q")
+    RRD_OUT=$(echo "N:$R_CPU:$Q_CPU:$R_GPU:$Q_GPU")
 
     # DEBUG
     #echo "$1 -- $RRD_OUT"
     rrdtool update ${RRD_DATABASE} ${RRD_OUT}
 }
-
-# The main; fetch the list of users then iterate over it, applying the function to each
-USERS=$(getent group rpp-kenclark | cut -d ":" -f4)
 
 IFS=',' read -ra SPLIT <<< "$USERS"
 for USER in "${SPLIT[@]}"; do
