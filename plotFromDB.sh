@@ -4,16 +4,26 @@
 # his script as a base; modified by Jamie Rajewski
 
 #SINCE="12/10/2016"
+#SINCE="last year"
 #SINCE="last month"
-SINCE="last week"
-#SINCE="yesterday"
+#SINCE="last week"
+#SINCE="joshua"
+SINCE="yesterday"
 
 if [[ "x$@" != "x" ]]; then
         SINCE=$@
 fi
 
+### NOTE ###
+# If you want to only display the total (no users), comment out
+# each of the DEF_LINE_LINE references in the loop so that it doesnt
+# try to draw the other lines
+
 if [[ "$SINCE" == "yesterday" ]]; then
-        XGRID="--x-grid HOUR:1:HOUR:4:HOUR:4:0:%H:%M"
+    XGRID="--x-grid HOUR:1:HOUR:4:HOUR:4:0:%H:%M"
+elif [[ "$SINCE" == "joshua" ]]; then
+    SINCE="2019-08-01"
+    XGRID="--x-grid WEEK:1:MONTH:1:MONTH:1:0:%m-%Y"
 elif [[ "$SINCE" == "last day" ]]; then
         XGRID="--x-grid HOUR:1:HOUR:4:HOUR:4:0:%m/%d^M%H:%M"
 elif [[ "$SINCE" == "last week" ]]; then
@@ -31,7 +41,7 @@ declare -a USER
 declare -a NAME
 
 i=0
-for rrd in ~/rrd-cedar/*.cedar.rrd; do
+for rrd in /home/iceprod/rrd-cedar/*.cedar.rrd; do
         RRD_DATABASE[$i]=$rrd
         rrd=`basename $rrd .cedar.rrd`
         USER[$i]=${rrd}

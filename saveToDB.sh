@@ -5,7 +5,7 @@ set -euo pipefail
 
 # The main; fetch the list of users then iterate over it, applying the function to each
 #USERS=$(getent group rpp-kenclark | cut -d ":" -f4) 
-USERS=jpyanez,kenclark,moore,hignight,terliuk,gaertner,jguthrie,tahmid,fbarrett,kleonard,jrajewsk,sanchezh,ckopper,mxiao1,keito38,tmontgom,snowicki,iceprod
+USERS=jpyanez,kenclark,moore,hignight,gaertner,kleonard,jrajewsk,ckopper,iceprod,dghuman,mliubar,wym109,ssarkar,mfens
 
 # Ping squeue ONCE, then REGEX it to reduce load on slurm
 SQUEUE_OUT=$(squeue -r -u $USERS -t R,PD -h)

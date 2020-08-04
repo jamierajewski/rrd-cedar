@@ -34,7 +34,7 @@ else
 fi
 
 # First, call the plotting script with the appropriate argument (last day, last week, last month, last year)
-../plotFromDB.sh "$SINCE"
+/home/iceprod/rrd-cedar/plotFromDB.sh "$SINCE"
 
 # Get the date range
 STARTDATE=$(date +%D)
@@ -44,6 +44,9 @@ URL="https://slack.com/api/files.upload"
 
 # Upload each of the 4 plots
 curl -F file=@sp_cpu_queued.png -F "initial_comment=CPU Queued for $ENDDATE to $STARTDATE ($SINCE)" -F channels=CMMFDJ83F -H "Authorization: Bearer $TOKEN" $URL
+sleep 2m
 curl -F file=@sp_cpu_running.png -F "initial_comment=CPU Running for $ENDDATE to $STARTDATE ($SINCE)" -F channels=CMMFDJ83F -H "Authorization: Bearer $TOKEN" $URL
+sleep 2m
 curl -F file=@sp_gpu_queued.png -F "initial_comment=GPU Queued for $ENDDATE to $STARTDATE ($SINCE)" -F channels=CMMFDJ83F -H "Authorization: Bearer $TOKEN" $URL
+sleep 2m
 curl -F file=@sp_gpu_running.png -F "initial_comment=GPU Running for $ENDDATE to $STARTDATE ($SINCE)" -F channels=CMMFDJ83F -H "Authorization: Bearer $TOKEN" $URL
