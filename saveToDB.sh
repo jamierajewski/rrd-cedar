@@ -14,7 +14,7 @@ fetch_and_update(){
     RRD_DATABASE=~/rrd-cedar/${1}.cedar.rrd
 
     if [[ ! -e ${RRD_DATABASE} ]]; then
-        rrdtool create ${RRD_DATABASE} --step 120 \
+        rrdtool create ${RRD_DATABASE} --step 600 \
                 DS:${1}_cpu_R:GAUGE:600:0:${max_number_jobs} \
                 DS:${1}_cpu_Q:GAUGE:600:0:${max_number_jobs} \
 		DS:${1}_gpu_R:GAUGE:600:0:${max_number_jobs} \
